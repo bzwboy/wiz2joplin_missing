@@ -334,6 +334,8 @@ class JoplinDataAPI(object):
         if data.get('error'):
             logger.error(data['error'])
             raise ValueError(data['error'])
+        # 添加 resource_type 参数，默认为 1（附件）
+        data['resource_type'] = 1
         return JoplinResource(**data)
 
     def post_note(self, id: str, title: str, body: str, 

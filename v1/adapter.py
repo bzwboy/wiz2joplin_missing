@@ -470,30 +470,93 @@ class Adapter(object):
         jr: JoplinResource = self.cu.resources.get(resource_id)
         if jr is not None:
             logger.warning(f'resource {resource_id} |{jr.title}|已经存在！')
-            return
-        jr = self.jda.post_resource(
-            attach.file,
-            1,
-            id=tojoplinid(attach.guid),
-            title=attach.name,
-            filename=attach.name,
-            created_time=attach.modified,
-            updated_time=attach.modified
-        )
-        self.cu.add_resource(jr)
-        return jr
+            return jr
+            
+        try:
+            jr = self.jda.post_resource(
+                attach.file,
+                1,
+                id=tojoplinid(attach.guid),
+                title=attach.name,
+                filename=attach.name,
+                created_time=attach.modified,
+                updated_time=attach.modified
+            )
+            self.cu.add_resource(jr)
+            return jr
+        except ValueError as e:
+            if str(e).find('SQLITE_CONSTRAINT: UNIQUE constraint failed') > -1:
+                try:
+                    # 如果资源已存在，尝试获取它
+                    jr = self.jda.get_resource(resource_id)
+                    self.cu.add_resource(jr)
+                    return jr
+                except Exception as e2:
+                    logger.error(f'获取已存在的资源失败: {e2}')
+                    # 创建一个临时的资源对象，以便继续执行
+                    jr = JoplinResource(
+                        id=resource_id,
+                        title=attach.name,
+                        filename=attach.name,
+                        created_time=attach.modified,
+                        resource_type=1
+                    )
+                    self.cu.add_resource(jr)
+                    return jr
+            logger.error(f'上传资源失败: {e}')
+            # 创建一个临时的资源对象，以便继续执行
+            jr = JoplinResource(
+                id=resource_id,
+                title=attach.name,
+                filename=attach.name,
+                created_time=attach.modified,
+                resource_type=1
+            )
+            self.cu.add_resource(jr)
+            return jr
 
     def _upload_wiz_image(self, image: WizImage) -> JoplinResource:
         """ 上传一个为知图像
         """
-        jr: JoplinResource = self.jda.post_resource(
-            image.file,
-            2,
-            title=image.src,
-            filename=image.src
-        )
-        self.cu.add_resource(jr)
-        return jr
+        try:
+            jr: JoplinResource = self.jda.post_resource(
+                image.file,
+                2,
+                title=image.src,
+                filename=image.src
+            )
+            self.cu.add_resource(jr)
+            return jr
+        except ValueError as e:
+            if str(e).find('SQLITE_CONSTRAINT: UNIQUE constraint failed') > -1:
+                try:
+                    # 如果资源已存在，尝试获取它
+                    jr = self.jda.get_resource(jr.id)
+                    self.cu.add_resource(jr)
+                    return jr
+                except Exception as e2:
+                    logger.error(f'获取已存在的图片资源失败: {e2}')
+                    # 创建一个临时的资源对象，以便继续执行
+                    jr = JoplinResource(
+                        id=jr.id,
+                        title=image.src,
+                        filename=image.src,
+                        created_time=0,
+                        resource_type=2
+                    )
+                    self.cu.add_resource(jr)
+                    return jr
+            logger.error(f'上传图片资源失败: {e}')
+            # 创建一个临时的资源对象，以便继续执行
+            jr = JoplinResource(
+                id=str(hash(image.src))[:32],  # 使用图片路径的哈希值作为临时ID
+                title=image.src,
+                filename=image.src,
+                created_time=0,
+                resource_type=2
+            )
+            self.cu.add_resource(jr)
+            return jr
 
     def _sync_note(self, document: WizDocument) -> JoplinNote:
         """ 同步一篇笔记

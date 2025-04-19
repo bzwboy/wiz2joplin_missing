@@ -9,6 +9,7 @@
 import json
 from pathlib import Path
 from typing import Optional, Union
+from datetime import datetime
 
 import httpx
 import sqlite3
@@ -18,9 +19,9 @@ from w2j.parser import JoplinInternalLink
 
 
 class JoplinFolder(object):
-    """ Joplin 中的 notebook
-    """
-    name = 'folder'
+    """Joplin 中的 notebook"""
+
+    name = "folder"
     type_ = 2
 
     # Folder 在 Joplin 数据库中的 guid
@@ -39,9 +40,17 @@ class JoplinFolder(object):
     parent_id: str = None
 
     # 所有必须的 fields 名称
-    fields = ['id', 'title', 'created_time', 'updated_time', 'parent_id']
+    fields = ["id", "title", "created_time", "updated_time", "parent_id"]
 
-    def __init__(self, id: str, title: str, created_time: int, updated_time: int, parent_id: Optional[str] = None, **kwargs) -> None:
+    def __init__(
+        self,
+        id: str,
+        title: str,
+        created_time: int,
+        updated_time: int,
+        parent_id: Optional[str] = None,
+        **kwargs,
+    ) -> None:
         self.id = id
         self.title = title
         self.created_time = created_time
@@ -50,16 +59,16 @@ class JoplinFolder(object):
 
     @classmethod
     def fields_str(cls) -> str:
-        return ','.join(cls.fields)
+        return ",".join(cls.fields)
 
     def __repr__(self) -> str:
-        return f'<JoplinFolder {self.id}, {self.title}, parent_id: {self.parent_id}>'
+        return f"<JoplinFolder {self.id}, {self.title}, parent_id: {self.parent_id}>"
 
 
 class JoplinResource(object):
-    """ Joplin 中的 Resource
-    """
-    name = 'resource'
+    """Joplin 中的 Resource"""
+
+    name = "resource"
     type_ = 4
 
     id: str = None
@@ -73,32 +82,46 @@ class JoplinResource(object):
     resource_type: int
 
     # 所有必须的 fields 名称
-    fields = ['id', 'title', 'created_time', 'updated_time', 'filename', 'file_extension']
-
+    fields = [
+        "id",
+        "title",
+        "created_time",
+        "updated_time",
+        "filename",
+        "file_extension",
+    ]
 
     @classmethod
     def fields_str(cls) -> str:
-        return ','.join(cls.fields)
+        return ",".join(cls.fields)
 
-    def __init__(self, id: str, title: str, filename: str, created_time: int, resource_type: int, **kwargs) -> None:
+    def __init__(
+        self,
+        id: str,
+        title: str,
+        filename: str,
+        created_time: int,
+        resource_type: int,
+        **kwargs,
+    ) -> None:
         self.id = id
         self.title = title
         self.filename = filename
         self.resource_type = resource_type
         self.created_time = created_time
-        if kwargs.get('file_extension'):
-            self.file_extension = kwargs.get('file_extension')
-        if kwargs.get('updated_time'):
-            self.updated_time = kwargs.get('updated_time')
+        if kwargs.get("file_extension"):
+            self.file_extension = kwargs.get("file_extension")
+        if kwargs.get("updated_time"):
+            self.updated_time = kwargs.get("updated_time")
 
     def __repr__(self) -> str:
-        return f'<JoplinResource {self.id} |{self.title}|{self.resource_type} {self.filename}>'
+        return f"<JoplinResource {self.id} |{self.title}|{self.resource_type} {self.filename}>"
 
 
 class JoplinTag(object):
-    """ Joplin 中的 tag
-    """
-    name = 'tag'
+    """Joplin 中的 tag"""
+
+    name = "tag"
     type_ = 5
 
     id: str = None
@@ -108,25 +131,27 @@ class JoplinTag(object):
     updated_time: int = 0
 
     # 所有必须的 fields 名称
-    fields = ['id', 'title', 'created_time', 'updated_time']
+    fields = ["id", "title", "created_time", "updated_time"]
 
     @classmethod
     def fields_str(cls):
-        return ','.join(cls.fields)
+        return ",".join(cls.fields)
 
-    def __init__(self, id: str, title: str, created_time:int, updated_time: int = 0, **kwargs) -> None:
+    def __init__(
+        self, id: str, title: str, created_time: int, updated_time: int = 0, **kwargs
+    ) -> None:
         self.id = id
         self.title = title
         self.created_time = created_time
         self.updated_time = created_time if updated_time == 0 else updated_time
 
     def __repr__(self) -> str:
-        return f'<JoplinTag {self.id}, {self.title}, parent_id: {self.parent_id}>'
+        return f"<JoplinTag {self.id}, {self.title}, parent_id: {self.parent_id}>"
 
 
 class JoplinNote(object):
-    """ 创建一个 Joplin 的 Note 类
-    """
+    """创建一个 Joplin 的 Note 类"""
+
     # Joplin 中的 note id，32 位
     id: str = None
 
@@ -148,8 +173,8 @@ class JoplinNote(object):
     # 1 代表 markdown，2代表 html
     markup_language: int = 1
 
-    location: str = ''
-    parent_id: str = ''
+    location: str = ""
+    parent_id: str = ""
 
     tags: dict[str, JoplinTag] = {}
     resources: dict[str, JoplinResource] = {}
@@ -157,28 +182,39 @@ class JoplinNote(object):
     folder: JoplinFolder = None
 
     # 所有必须的 fields 名称
-    fields = ['id', 'title', 'parent_id', 'created_time', 'updated_time', 'body', 'source_url', 'markup_lanaguage']
+    fields = [
+        "id",
+        "title",
+        "parent_id",
+        "created_time",
+        "updated_time",
+        "body",
+        "source_url",
+        "markup_lanaguage",
+    ]
 
-    def __init__(self, id: str, title: str, parent_id: str, markup_language: int, **kwargs) -> None:
+    def __init__(
+        self, id: str, title: str, parent_id: str, markup_language: int, **kwargs
+    ) -> None:
         self.id = id
         self.title = title
         self.parent_id = parent_id
         self.markup_language = markup_language
-        if kwargs.get('location'):
-            self.location = kwargs.get('location')
-        if kwargs.get('source_url'):
-            self.source_url = kwargs.get('source_url')
-        if kwargs.get('created_time'):
-            self.created_time = kwargs.get('created_time')
-        if kwargs.get('updated_time'):
-            self.updated_time = kwargs.get('updated_time')
+        if kwargs.get("location"):
+            self.location = kwargs.get("location")
+        if kwargs.get("source_url"):
+            self.source_url = kwargs.get("source_url")
+        if kwargs.get("created_time"):
+            self.created_time = kwargs.get("created_time")
+        if kwargs.get("updated_time"):
+            self.updated_time = kwargs.get("updated_time")
 
     @classmethod
     def fields_str(cls):
-        return ','.join(cls.fields)
+        return ",".join(cls.fields)
 
     def __repr__(self) -> str:
-        return f'<JoplinNote {self.id}, {self.title}, tag: {len(self.tags)}, resource: {len(self.resources)}, folder: {len(self.folder)}>'
+        return f"<JoplinNote {self.id}, {self.title}, tag: {len(self.tags)}, resource: {len(self.resources)}, folder: {len(self.folder)}>"
 
 
 class JoplinDataAPI(object):
@@ -187,69 +223,87 @@ class JoplinDataAPI(object):
     port: int
     token: str
     base_url: str
-    
+
     client: httpx.Client = None
 
-    def __init__(self, host: str = '127.0.0.1', port: int = 41184,
-                 token: str = 'ad9b597aac8c9fa2083cb23c4354eb589b1252e6a366185d94795077ed076dfdb312c22b8640a05e5af7b784d65d831a429771e3cc2bcbe3f9cdac441d6fcca6') -> None:
+    def __init__(
+        self,
+        host: str = "127.0.0.1",
+        port: int = 41184,
+        token: str = "ad9b597aac8c9fa2083cb23c4354eb589b1252e6a366185d94795077ed076dfdb312c22b8640a05e5af7b784d65d831a429771e3cc2bcbe3f9cdac441d6fcca6",
+    ) -> None:
         self.host = host
         self.port = port
         self.token = token
-        self.base_url = f'http://{self.host}:{self.port}'
+        self.base_url = f"http://{self.host}:{self.port}"
         self.client = httpx.Client(base_url=self.base_url, timeout=100)
 
     def _build_query(self, **kwargs):
         return httpx.QueryParams(token=self.token, **kwargs)
 
-    def _check_pagination(self, page: int, paginated_resp: httpx.Response) -> tuple[list, bool, int]:
-        """ 专门处理分页
+    def _check_pagination(
+        self, page: int, paginated_resp: httpx.Response
+    ) -> tuple[list, bool, int]:
+        """专门处理分页
         :returns: items, has_more, next_page
         """
         data = paginated_resp.json()
-        if data.get('error'):
-            raise ValueError(data['error'])
-        has_more = data['has_more']
+        if data.get("error"):
+            raise ValueError(data["error"])
+        has_more = data["has_more"]
         next_page = page
         if has_more:
             next_page += 1
-        return data['items'], has_more, next_page
+        return data["items"], has_more, next_page
 
     def close(self):
         self.client.close()
 
     def ping(self) -> bool:
-        resp = self.client.get('/ping')
-        return resp.text == 'JoplinClipperServer'
+        resp = self.client.get("/ping")
+        return resp.text == "JoplinClipperServer"
 
     def search(self, query: str, type_: str) -> httpx.Response:
-        return self.client.get('/search')
+        return self.client.get("/search")
 
     def get_folder(self, guid: str) -> JoplinFolder:
-        """ 根据 guid 获取 folder
-        """
+        """根据 guid 获取 folder"""
         query = self._build_query()
-        resp = self.client.get(f'/folders/{guid}', params=query)
+        resp = self.client.get(f"/folders/{guid}", params=query)
         data = resp.json()
-        if data.get('error'):
-            raise ValueError(data['error'])
+        if data.get("error"):
+            raise ValueError(data["error"])
         return JoplinFolder(**data)
 
     # https://joplinapp.org/api/references/rest_api/#pagination
     # https://joplinapp.org/api/references/rest_api/#get-folders
     # order_by=updated_time&order_dir=ASC&limit=10&page=2
-    def get_folders(self, order_by: str='updated_time', order_dir: str='ASC', limit: int=100, page: int=1) -> \
-        tuple[ list[JoplinFolder], bool, int]:
-        """ 获取一组 folder，支持分页
+    def get_folders(
+        self,
+        order_by: str = "updated_time",
+        order_dir: str = "ASC",
+        limit: int = 100,
+        page: int = 1,
+    ) -> tuple[list[JoplinFolder], bool, int]:
+        """获取一组 folder，支持分页
         :returns: joplin folder list, has_more, next_page
         """
         folders: list[JoplinFolder] = []
 
         def __build_query(page: int) -> httpx.QueryParams:
-            return self._build_query(order_by=order_by, order_dir=order_dir, page=page, limit=limit, fields=JoplinFolder.fields_str())
+            return self._build_query(
+                order_by=order_by,
+                order_dir=order_dir,
+                page=page,
+                limit=limit,
+                fields=JoplinFolder.fields_str(),
+            )
 
         def __get_folders(query: httpx.QueryParams) -> tuple[bool, int]:
-            resp = self.client.get('/folders', params=query)
-            items, has_more, next_page = self._check_pagination(int(query.get('page')), resp)
+            resp = self.client.get("/folders", params=query)
+            items, has_more, next_page = self._check_pagination(
+                int(query.get("page")), resp
+            )
             for item in items:
                 folders.append(JoplinFolder(**item))
             return has_more, next_page
@@ -263,86 +317,102 @@ class JoplinDataAPI(object):
         page = 1
         query = __build_query(page)
         has_more, next_page = __get_folders(query)
-        while(has_more):
+        while has_more:
             query = __build_query(next_page)
             has_more, next_page = __get_folders(query)
         return folders, has_more, next_page
 
     def get_folder_note(self, guid: str) -> list[JoplinFolder]:
-        """ Get one folder All under note
-        """
+        """Get one folder All under note"""
         query = self._build_query(fields=JoplinNote.fields_str())
-        resp = self.client.get('/folders/{guid}/notes', params=query)
+        resp = self.client.get("/folders/{guid}/notes", params=query)
         return JoplinNote(**resp.json())
 
     def post_folder(self, **kwargs) -> JoplinFolder:
-        """ Create a new one folder
-        """
+        """Create a new one folder"""
         query = self._build_query()
-        logger.info(f'to Joplin add folder {kwargs}')
-        resp = self.client.post('/folders', params=query, json=kwargs)
+        logger.info(f"to Joplin add folder {kwargs}")
+        resp = self.client.post("/folders", params=query, json=kwargs)
         data = resp.json()
-        if data.get('error'):
-            logger.error(data['error'])
-            raise ValueError(data['error'])
+        if data.get("error"):
+            logger.error(data["error"])
+            raise ValueError(data["error"])
         return JoplinFolder(**data)
 
     def post_tag(self, **kwargs) -> JoplinTag:
-        """ Create a new one tag
-        """
+        """Create a new one tag"""
         query = self._build_query()
-        logger.info(f'To Joplin add tag {kwargs}')
-        resp = self.client.post('/tags', params=query, json=kwargs)
+        logger.info(f"To Joplin add tag {kwargs}")
+        resp = self.client.post("/tags", params=query, json=kwargs)
         data = resp.json()
-        if data.get('error'):
-            logger.error(data['error'])
-            raise ValueError(data['error'])
+        if data.get("error"):
+            logger.error(data["error"])
+            raise ValueError(data["error"])
         return JoplinTag(**data)
 
     def get_tag(self, guid: str) -> JoplinTag:
-        """ 根据 guid 获取 tag
-        """
+        """根据 guid 获取 tag"""
         query = self._build_query(fields=JoplinTag.fields_str())
-        resp = self.client.get(f'/tags/{guid}', params=query)
+        resp = self.client.get(f"/tags/{guid}", params=query)
         data = resp.json()
-        logger.info(f'From Joplin get tag {guid}: {data}')
-        if data.get('error'):
-            logger.error(data['error'])
-            raise ValueError(data['error'])
+        logger.info(f"From Joplin get tag {guid}: {data}")
+        if data.get("error"):
+            logger.error(data["error"])
+            raise ValueError(data["error"])
         return JoplinTag(**data)
 
     def post_resource(self, file: Path, resource_type: int, **kwargs) -> JoplinResource:
-        """ 创建一个新的 resources
-        """
+        """创建一个新的 resources"""
         query = self._build_query()
-        files = {'data': open(file, 'rb')}
+        files = {"data": open(file, "rb")}
         # Tested props only title and id it works, other parameters are invalid
-        data = {'props': json.dumps(kwargs)}
-        logger.info(f'to Joplin add resource {file} {kwargs}')
-        resp = self.client.post('/resources', params=query, files=files, data=data)
+        data = {"props": json.dumps(kwargs)}
+        logger.info(f"to Joplin add resource {file} {kwargs}")
+        resp = self.client.post("/resources", params=query, files=files, data=data)
         data = resp.json()
-        if data.get('error'):
-            logger.error(data['error'])
-            #raise ValueError(data['error'])
+        if data.get("error"):
+            logger.error(data["error"])
+            raise ValueError(data["error"])
+
+        # 确保所有必需的字段都存在
+        if not data.get("id"):
+            data["id"] = kwargs.get("id")
+        if not data.get("title"):
+            data["title"] = kwargs.get("title") or file.name
+        if not data.get("filename"):
+            data["filename"] = file.name
+        if not data.get("created_time"):
+            data["created_time"] = kwargs.get("created_time") or int(
+                datetime.now().timestamp() * 1000
+            )
+
         return JoplinResource(**data, resource_type=resource_type)
 
-    def get_resource(self, guid: str) -> JoplinResource:
-        """ 根据 guid 获取 resource
-        """
+    def get_resource(self, guid: str, resource_type: int = 1) -> JoplinResource:
+        """根据 guid 获取 resource"""
         query = self._build_query(fields=JoplinResource.fields_str())
-        resp = self.client.get(f'/resources/{guid}', params=query)
+        resp = self.client.get(f"/resources/{guid}", params=query)
         data = resp.json()
-        logger.info(f'from Joplin get resource {guid}: {data}')
-        if data.get('error'):
-            logger.error(data['error'])
-            raise ValueError(data['error'])
-        return JoplinResource(**data)
+        logger.info(f"from Joplin get resource {guid}: {data}")
+        if data.get("error"):
+            logger.error(data["error"])
+            raise ValueError(data["error"])
+        return JoplinResource(**data, resource_type=resource_type)
 
-    def post_note(self, id: str, title: str, body: str, 
-        is_markdown: bool, parent_id: str, source_url: str, created: int, modified: int) -> JoplinNote:
-        """ Create a new one Note
+    def post_note(
+        self,
+        id: str,
+        title: str,
+        body: str,
+        is_markdown: bool,
+        parent_id: str,
+        source_url: str,
+        created: int,
+        modified: int,
+    ) -> JoplinNote:
+        """Create a new one Note
         hidden Joplin parameter：By grabbing the bag Joplin WebClipper
-        
+
         complete Page Html
         source_command
         {
@@ -367,54 +437,53 @@ class JoplinDataAPI(object):
         convert_to = markdown
         """
         kwargs = {
-            'id': id,
-            'title': title,
-            'parent_id': parent_id,
-            'markup_language': 1,
+            "id": id,
+            "title": title,
+            "parent_id": parent_id,
+            "markup_language": 1,
         }
         if source_url:
-            kwargs['source_url'] = source_url
+            kwargs["source_url"] = source_url
         if is_markdown:
-            kwargs['body'] = body
+            kwargs["body"] = body
         else:
             # use joplin function will be convert all html into markdown
-            kwargs['body_html'] = body
-            kwargs['convert_to'] = 'markdown'
-            kwargs['source_command'] = {
-                'name': 'simplifiedPageHtml',
+            kwargs["body_html"] = body
+            kwargs["convert_to"] = "markdown"
+            kwargs["source_command"] = {
+                "name": "simplifiedPageHtml",
             }
-        kwargs['created_time'] = created
-        kwargs['updated_time'] = modified
-        kwargs['user_created_time'] = created
-        kwargs['user_updated_time'] = modified
-## created_time	int	When the note was created.
-# updated_time	int	When the note was last updated.
-# user_created_time	int	When the note was created. It may differ from created_time as it can be manually set by the user.
-# user_updated_time	int	When the note was last updated. It may differ from updated_time as it can be manually set by the user.
+        kwargs["created_time"] = created
+        kwargs["updated_time"] = modified
+        kwargs["user_created_time"] = created
+        kwargs["user_updated_time"] = modified
+        ## created_time	int	When the note was created.
+        # updated_time	int	When the note was last updated.
+        # user_created_time	int	When the note was created. It may differ from created_time as it can be manually set by the user.
+        # user_updated_time	int	When the note was last updated. It may differ from updated_time as it can be manually set by the user.
         query = self._build_query()
-        logger.info(f'to Joplin add note {kwargs}')
-        resp = self.client.post('/notes', params=query, json=kwargs)
+        logger.info(f"to Joplin add note {kwargs}")
+        resp = self.client.post("/notes", params=query, json=kwargs)
         data = resp.json()
-        if data.get('error'):
-            logger.error(data['error'])
-            raise ValueError(data['error'])
+        if data.get("error"):
+            logger.error(data["error"])
+            raise ValueError(data["error"])
         return JoplinNote(**data)
 
     def get_note(self, guid: str) -> JoplinNote:
-        """ 根据 guid 获取 note
-        """
+        """根据 guid 获取 note"""
         query = self._build_query(fields=JoplinNote.fields_str())
-        resp = self.client.get(f'/notes/{guid}', params=query)
+        resp = self.client.get(f"/notes/{guid}", params=query)
         data = resp.json()
-        logger.info(f'从 Joplin 获取 note {guid}: {data}')
-        if data.get('error'):
-            raise ValueError(data['error'])
+        logger.info(f"从 Joplin 获取 note {guid}: {data}")
+        if data.get("error"):
+            raise ValueError(data["error"])
         return JoplinNote(**data)
 
 
 class JoplinStorage(object):
-    """ save Joplin data
-    """
+    """save Joplin data"""
+
     # joplin folder where resource is located
     joplin_dir: Path
 
@@ -423,11 +492,10 @@ class JoplinStorage(object):
 
     def __init__(self, joplin_dir: Path) -> None:
         self.joplin_dir = joplin_dir
-        self.db_file = self.joplin_dir.joinpath('database.sqlite')
+        self.db_file = self.joplin_dir.joinpath("database.sqlite")
 
     def update_time(self, wiz_document_times: list[dict[str, Union[str, int]]]):
-        """ Modify according to the update time of the article in the notes for knowledge Joplin note time
-        """
+        """Modify according to the update time of the article in the notes for knowledge Joplin note time"""
         self.conn = sqlite3.connect(self.db_file)
         sql = "UPDATE notes SET created_time=:created_time, updated_time=:updated_time, user_created_time=:created_time, user_updated_time=:updated_time WHERE id=:id;"
         # for wdt in wiz_document_times:
