@@ -1,0 +1,8 @@
+Install Steps
+- install w2j package `pip install w2j`
+- execute `pip show w2j`
+- enter into w2j site-package directory
+- override files with these
+
+Migeration files from Wiznote to Joplin
+execute `bin/run_w2j_v1.sh`
